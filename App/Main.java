@@ -1,40 +1,14 @@
 package App;
 
+import static App.Settings.*;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.EOFException;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Serializable;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketAddress;
-import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
 
 //jlhttp-2.6-distribution\jlhttp-2.6\src\main\java\net\freeutils\httpserver
 //public Request(InputStream in, Socket sock) throws IOException {
@@ -60,23 +34,23 @@ class SocketWorker implements Runnable {
 			
 			Request r=new Request(in,socket);
 		} catch (IOException ignore) {
-			ClearSky.error("socket error working.");
+			ClearSky.error("socket error working."+ignore.getMessage());
 		}
 	}
 }
 
 public class Main {
-	final static int PORT_SERVER = 8001;
-	final static String HOST = "127.0.0.1";
-	
 	public static void main(String[] args) {
 		System.out.println("Begin: " + new Date());
-
+		{Settings s=new Settings();}
+		
 		//String s[]=new String[0];
 		//System.out.println(Arrays.asList(s));
 		
-		Server s=new Server(HOST,PORT_SERVER);
-		s.start();
+		//Server s=new Server(HOST,PORT_SERVER);
+		//s.start();
+		new Server(HOST,PORT_SERVER).start();
+		//Test.indexOfArray();
 		
 		System.out.println("End  : " + new Date());
 	}

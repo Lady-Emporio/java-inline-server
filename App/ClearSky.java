@@ -5,7 +5,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 
@@ -113,15 +115,14 @@ public class ClearSky {
 		return count > 0 ? new String(buf, 0, count, enc) : "";
 	}
 	
-	public static ArrayList<Byte> readBody(InputStream in,int len) throws IOException{
-		ArrayList<Byte> body=new ArrayList<Byte>(len);
+	public static byte[] readBody(InputStream in,int len) throws IOException{
+		byte body[]=new byte[len];
 		  for(int i=0;i<len;++i) { 
 			  int b=in.read();
 			  if(b==-1) {
 				  throw new IOException("fast end body.");
 			  }
-			  body.add((byte) b);
-			  
+			  body[i]=(byte) b;
 		  }
 		 return body;
 	}
@@ -141,5 +142,109 @@ public class ClearSky {
         }
         return params;
     }
+	
+	public static ArrayList<Files> parseBoundary(byte [] rawBody,String boundary) throws IOException {
+		byte[] lboundary=boundary.getBytes();
+		byte [] bBoundary=new byte[lboundary.length+2];
+		bBoundary[0]='-';
+		bBoundary[1]='-';
+		System.arraycopy(lboundary,0,bBoundary,2,lboundary.length);
+		
+		
+		if (indexOfArray(rawBody,bBoundary,0)!=0) {
+			throw new IOException("Not found boundary in begin body.");
+		}
+			
+		ArrayList<Files> boundaries=new ArrayList<Files>();
+		int contentDispositionPos=bBoundary.length;
+		boolean allFound = false;
+		int stop=40;
+		while (!allFound) {
+			--stop;
+			if(stop<0) {
+				throw new IOException("Very many boundary. Or parse error.");
+			}
+			
+
+			if(rawBody[contentDispositionPos]=='\r' && rawBody[contentDispositionPos+1]=='\n') {
+				contentDispositionPos+=2;
+			}else if(rawBody[contentDispositionPos]=='\n') {
+				contentDispositionPos+=1;;
+			}else {
+				throw new IOException("Not found content-disposition in begin body.");
+			}
+			
+			int endContentDisposition = contentDispositionPos;
+			for (; rawBody[endContentDisposition] != '\n'; ++endContentDisposition) {
+			}
+			if (rawBody[endContentDisposition - 1] == '\r') {
+				--endContentDisposition;
+			}
+			byte[] contentDispositionByte = new byte[endContentDisposition - contentDispositionPos];
+			System.arraycopy(rawBody, contentDispositionPos, contentDispositionByte, 0,
+					endContentDisposition - contentDispositionPos);
+			//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+			//String contentDispositionStr = new String(contentDispositionByte);
+			String contentDispositionStr = new String(contentDispositionByte,StandardCharsets.ISO_8859_1);
+			contentDispositionStr= new String(contentDispositionByte,StandardCharsets.UTF_8) ;
+			
+			
+			//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+			
+			int nextPosBeginBoundary = indexOfArray(rawBody, bBoundary, endContentDisposition);
+			if (rawBody[nextPosBeginBoundary + bBoundary.length] == '-'
+					&& rawBody[nextPosBeginBoundary + bBoundary.length + 1] == '-') {
+				allFound=true;
+				if( (nextPosBeginBoundary + bBoundary.length + 1)!=rawBody.length-1 && rawBody[rawBody.length-1]!='\n') {
+					throw new IOException("Can not parse END of boundaries.");
+				}
+				
+			}else {
+				contentDispositionPos=nextPosBeginBoundary + bBoundary.length;
+			}
+			
+			int afterEndContentDisposition=endContentDisposition;
+			int beforeNextPosBeginBoundary=nextPosBeginBoundary;
+			while ('\r'==rawBody[afterEndContentDisposition] || '\n'==rawBody[afterEndContentDisposition]) {
+				++afterEndContentDisposition;
+			}
+			while ('\r'==rawBody[beforeNextPosBeginBoundary] || '\n'==rawBody[beforeNextPosBeginBoundary]) {
+				--beforeNextPosBeginBoundary;
+			}
+			
+			int lenData=beforeNextPosBeginBoundary-afterEndContentDisposition;
+			byte []dataBoundary=new byte[lenData];
+			System.arraycopy(rawBody,afterEndContentDisposition,dataBoundary,0,lenData);
+			System.out.println("pos:"+afterEndContentDisposition+" len:"+lenData);
+			boundaries.add(new Files(contentDispositionStr,dataBoundary));
+		}
+		
+		return boundaries;
+	}
+	public static boolean arrayStartsWith(byte[]first, byte[]second, int beginFirst) {
+		if (first.length < beginFirst+second.length) {
+			return false;//In pos in first array can not put second
+		}
+		int i=0;
+		if(first[beginFirst+second.length-1]!=second[second.length-1] && first[beginFirst+second.length-1]!=second[second.length-1]) {
+			return false;
+		}
+		for( ;i<second.length;++i) {
+			if (first[beginFirst+i]!=second[i]) {
+				return false;
+			}
+		}
+		return true;
+	}
+	public static int indexOfArray(byte[]first, byte[]second, int beginFirst) {
+		int i=beginFirst;
+		boolean found;
+		for(; first.length>=i+second.length;++i) {
+			if( found=arrayStartsWith(first,second,i) ) {
+				return i;
+			}
+		}
+		return -1;
+	}
 }
 
