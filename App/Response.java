@@ -1,5 +1,8 @@
-package App;
+package app;
 
+import static app.Settings.*;
+
+import java.io.IOException;
 import java.io.OutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -7,9 +10,10 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Locale;
-
-import static App.Settings.*;
+import java.util.TimeZone;
 
 //HTTP/1.1 200 OK
 //Server: AkamaiNetStorage
@@ -24,20 +28,50 @@ import static App.Settings.*;
 //Connection: keep-alive
 
 public class Response {
-	HashMap<String,String>Headers;
+	HashMap<String, String> headers;
 	OutputStream out;
+
 	
 	public Response(OutputStream out) {
-		this.out=out;
+		this.out = out;
+		headers=new LinkedHashMap <String, String>();
 	}
-	public void headersCreate() {
-		//Date date = Calendar.getInstance().;
-//		GregorianCalendar calendar = new GregorianCalendar();
-//		x=calendar.get(Calendar.DAY_OF_WEEK);
-//		
-//		String day_name="";
+
+	public void sendAll(String html) throws IOException {
+		sendAll(html,200);
+	}
+	
+	public void sendAll(String html,int status_code) throws IOException {
+		generateHeaders();
+		byte[] byteHtml=html.getBytes();
+		StringBuilder buffer = new StringBuilder();
+		buffer.append("HTTP/1.1 "+status_code+" OK").append("\r\n");
+		headers.put("Content-Length", ""+byteHtml.length);
+		for(String headerKey:headers.keySet()) {
+			buffer.append(headerKey+": "+headers.get(headerKey)).append("\r\n");
+		}
+		buffer.append("\r\n").append(html);
+		out.write(buffer.toString().getBytes());
+		out.flush();
+		out.close();
+	}
+	
+	private void generateHeaders() {
+		headers.clear();
+		headers.put("Date", serverDateNow()); 
+		headers.put("Cache-Control", FUNCTIONAL_CACHE_CONTROL);
+		headers.put("Connection", FUNCTIONAL_CONNECTION);
+		headers.put("Server", FUNCTIONAL_SERVER);
+		headers.put("Content-Type", "text/html");
+		headers.put("Content-Length", "0");
+	}
+	
+	private String serverDateNow() {
 //		DateFormat dateFormat = new SimpleDateFormat("<day-name>, <day> <month> <year> <hour>:<minute>:<second>");  
-//		
-//		String strDate = dateFormat.format(date)+" GMT";  
+		Calendar calendar = Calendar.getInstance();
+		SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
+		dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+		String serverDate = dateFormat.format(calendar.getTime());
+		return serverDate;
 	}
 }

@@ -1,4 +1,4 @@
-package App;
+package app;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -70,7 +70,7 @@ public class ClearSky {
                 throw new IOException("invalid header: \"" + line + "\"");
             String name = line.substring(0, separator);
             String value = line.substring(separator + 1).trim(); // ignore LWS
-            Header replaced = headers.replace(name, value);
+            Headers.Header replaced = headers.replace(name, value);
             // concatenate repeated headers (distinguishing repeated from folded)
             if (replaced != null && start == 0) {
                 value = replaced.getValue() + ", " + value;

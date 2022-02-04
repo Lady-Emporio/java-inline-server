@@ -1,4 +1,4 @@
-package App;
+package app;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -17,6 +17,10 @@ public class Server {
 			SocketAddress socketAddress = new InetSocketAddress(_host, port);
 			ClearSky.log(socketAddress.toString());
 			server.bind(socketAddress);
+			
+			Router route=Router.getInstanse();
+			route.add("*", null);
+			
 		} catch (IOException e) {
 			ClearSky.error(e.getMessage());
 		}

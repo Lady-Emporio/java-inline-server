@@ -1,6 +1,6 @@
-package App;
+package app;
 
-import static App.Settings.*;
+import static app.Settings.*;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -33,6 +33,8 @@ class SocketWorker implements Runnable {
 			in = new BufferedInputStream(in, 4096);
 			
 			Request r=new Request(in,socket);
+			Response res=new Response(out);
+			res.sendAll("<html><head></head><body><h3>We are champion</h3></body></html>");
 		} catch (IOException ignore) {
 			ClearSky.error("socket error working."+ignore.getMessage());
 		}

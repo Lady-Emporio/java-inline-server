@@ -1,4 +1,4 @@
-package App;
+package app;
 
 public class Test {
 	public static void indexOfArray() {

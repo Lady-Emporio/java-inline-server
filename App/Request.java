@@ -1,4 +1,6 @@
-package App;
+package app;
+
+import static app.Settings.*;
 
 import java.io.BufferedWriter;
 import java.io.EOFException;
@@ -16,9 +18,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Locale;
-import static App.Settings.*;
 
-class Request {
+public class Request {
 	private Socket socket;
 	private String method;
 	private URI uri;
@@ -82,20 +83,20 @@ class Request {
 		ClearSky.log("uriPath:     " + uri.getPath());
 		ClearSky.log("uriFragment: " + uri.getFragment());
 		ClearSky.log("headers:     " + headers.toString());
-		ClearSky.log("body:        " + rawBody.length);
+		ClearSky.log("body size:   " + rawBody.length);
 		ClearSky.log("rawStrBody:  " + rawStrBody);
 		ClearSky.log("params:      " + params);
 
-		for (var i : files) {
-			System.out.println(i);
-			FileOutputStream fos = new FileOutputStream(BASE_DIR + "download\\" + i.getFilename());
-			fos.write(i.getData());
-		}
-		BufferedWriter writer = new BufferedWriter(new FileWriter(BASE_DIR + "qwe.jpg"));
-		for (byte b : rawBody) {
-			writer.write(b);
-		}
-		writer.close();
+//		for (var i : files) {
+//			System.out.println(i);
+//			FileOutputStream fos = new FileOutputStream(BASE_DIR + "download\\" + i.getFilename());
+//			fos.write(i.getData());
+//		}
+//		BufferedWriter writer = new BufferedWriter(new FileWriter(BASE_DIR + "qwe.jpg"));
+//		for (byte b : rawBody) {
+//			writer.write(b);
+//		}
+//		writer.close();
 	}
 
 	private void readRequestLine(InputStream in) throws IOException {
