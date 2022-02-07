@@ -7,19 +7,22 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketAddress;
 
+import views.BaseViews;
+
 public class Server {
 	ServerSocket server;
 
 	Server(String host, int port) {
 		try {
+			Router route=Router.getInstanse();
+			route.add("/",Settings.GET ,BaseViews.class ,"index");
+			route.checkSettingsRoute();
+			
 			server = new ServerSocket();
 			final InetAddress _host = InetAddress.getByName(host);
 			SocketAddress socketAddress = new InetSocketAddress(_host, port);
 			ClearSky.log(socketAddress.toString());
 			server.bind(socketAddress);
-			
-			Router route=Router.getInstanse();
-			route.add("*", null);
 			
 		} catch (IOException e) {
 			ClearSky.error(e.getMessage());
@@ -38,6 +41,7 @@ public class Server {
 				t.start();
 			}
 		} catch (IOException ignore) {
+			ignore.printStackTrace();
 		}
 	}
 

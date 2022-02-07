@@ -20,10 +20,10 @@ import java.util.HashMap;
 import java.util.Locale;
 
 public class Request {
-	private Socket socket;
-	private String method;
-	private URI uri;
-	private Headers headers;
+	Socket socket;
+	String method;
+	URI uri;
+	Headers headers;
 
 	byte[] rawBody = new byte[0];
 	String rawStrBody = "";

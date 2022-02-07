@@ -2,8 +2,12 @@ package app;
 
 import static app.Settings.*;
 
+import java.io.DataInputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -54,6 +58,17 @@ public class Response {
 		out.write(buffer.toString().getBytes());
 		out.flush();
 		out.close();
+	}
+	
+	public void sendFile(String filename) throws IOException {
+		sendFile(filename,200);
+	}
+	
+	public void sendFile(String filename,int status_code) throws IOException {
+		String realFileName=Settings.BASE_DIR+filename;
+		DataInputStream data = new DataInputStream(new FileInputStream(realFileName));
+		String text = new String(data.readAllBytes());
+		sendAll(text,status_code);
 	}
 	
 	private void generateHeaders() {

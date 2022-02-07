@@ -6,7 +6,10 @@ import java.util.TimeZone;
 public final class Settings {
 	static final String HOST="127.0.0.1";;
 	static final int PORT_SERVER = 8001;
-	static final String BASE_DIR="C:\\Users\\prog2.HLEB\\Desktop\\test1\\";
+	static final String POST="POST";
+	static final String GET="GET";
+	//static final String BASE_DIR="C:\\Users\\prog2.HLEB\\Desktop\\test1\\";
+	static final String BASE_DIR="C:\\Users\\prog2.HLEB\\Desktop\\test1\\download\\";
 	//static final TimeZone GMT = TimeZone.getTimeZone("GMT");
 
 	static final String FUNCTIONAL_CACHE_CONTROL="no-cache";
@@ -21,5 +24,7 @@ public final class Settings {
 		if(!f.exists() && !f.isDirectory()) { 
 		    throw new RuntimeException("BASE_DIR not exist.");
 		}
+		
+
 	}//not work
 };

@@ -34,8 +34,9 @@ class SocketWorker implements Runnable {
 			
 			Request r=new Request(in,socket);
 			Response res=new Response(out);
-			res.sendAll("<html><head></head><body><h3>We are champion</h3></body></html>");
-		} catch (IOException ignore) {
+			Router.getInstanse().call(r,res);
+		} catch (Exception ignore) {
+			ignore.printStackTrace();
 			ClearSky.error("socket error working."+ignore.getMessage());
 		}
 	}
