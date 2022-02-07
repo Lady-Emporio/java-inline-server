@@ -204,10 +204,41 @@ public class ClearSky {
 			}
 			
 			int afterEndContentDisposition=endContentDisposition;
-			int beforeNextPosBeginBoundary=nextPosBeginBoundary;
-			while ('\r'==rawBody[afterEndContentDisposition] || '\n'==rawBody[afterEndContentDisposition]) {
+			
+			byte[] splitRawBody1 = {'\r','\n','\r','\n'};
+			byte[] splitRawBody2 = {'\n','\n'};
+			
+			boolean passAllTrashLine;
+			while( true ) {
+				passAllTrashLine=true;
+				for(int j=0;j<splitRawBody1.length;++j) {
+					if( rawBody[afterEndContentDisposition+j]!=splitRawBody1[j]) {
+						passAllTrashLine=false;
+					}
+				}
+				if (passAllTrashLine) {
+					afterEndContentDisposition+=splitRawBody1.length;
+					break;
+				}
+				
+				passAllTrashLine=true;
+				for(int j=0; j<splitRawBody2.length;++j) {
+					if( rawBody[afterEndContentDisposition+j]!=splitRawBody2[j]) {
+						passAllTrashLine=false;
+					}
+				}
+				if (passAllTrashLine) {
+					afterEndContentDisposition+=splitRawBody2.length;
+					break;
+				}
 				++afterEndContentDisposition;
 			}
+			
+			
+			int beforeNextPosBeginBoundary=nextPosBeginBoundary;
+//			while ('\r'==rawBody[afterEndContentDisposition] || '\n'==rawBody[afterEndContentDisposition]) {
+//				++afterEndContentDisposition;
+//			}
 			while ('\r'==rawBody[beforeNextPosBeginBoundary] || '\n'==rawBody[beforeNextPosBeginBoundary]) {
 				--beforeNextPosBeginBoundary;
 			}
@@ -215,7 +246,6 @@ public class ClearSky {
 			int lenData=beforeNextPosBeginBoundary-afterEndContentDisposition;
 			byte []dataBoundary=new byte[lenData];
 			System.arraycopy(rawBody,afterEndContentDisposition,dataBoundary,0,lenData);
-			System.out.println("pos:"+afterEndContentDisposition+" len:"+lenData);
 			boundaries.add(new Files(contentDispositionStr,dataBoundary));
 		}
 		

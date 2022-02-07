@@ -40,11 +40,14 @@ public class Router {
 				continue;
 			}
 			if (req.uri.getPath().equals(routeFunction.pattern)) {
+				System.out.println("Router: "+ routeFunction.obj.getName()+" / "+routeFunction.nameFunction+".");
 				Method method = routeFunction.obj.getMethod(routeFunction.nameFunction, Request.class, Response.class);
 				method.invoke(null, req, resp);
 				return;
 			}
 		}
+		
+		System.out.println("Router: 404.");
 		Method method = BaseViews.class.getMethod(page404.nameFunction, Request.class, Response.class);
 		method.invoke(null, req, resp);
 	}

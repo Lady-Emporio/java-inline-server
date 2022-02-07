@@ -25,10 +25,10 @@ public class Request {
 	URI uri;
 	Headers headers;
 
-	byte[] rawBody = new byte[0];
+	public byte[] rawBody = new byte[0];
 	String rawStrBody = "";
 	HashMap<String, String> params = new HashMap<String, String>();
-	ArrayList<Files> files = new ArrayList<Files>();
+	private ArrayList<Files> files = new ArrayList<Files>();
 
 	public Request(InputStream in, Socket socket) throws IOException {
 		this.socket = socket;
@@ -122,6 +122,10 @@ public class Request {
 			throw new IOException("invalid URI: " + use.getMessage());
 		}
 
+	}
+
+	public ArrayList<Files> getFiles() {
+		return files;
 	}
 
 }

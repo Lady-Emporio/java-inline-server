@@ -8,6 +8,7 @@ import java.net.Socket;
 import java.net.SocketAddress;
 
 import views.BaseViews;
+import views.MediaViews;
 
 public class Server {
 	ServerSocket server;
@@ -15,6 +16,9 @@ public class Server {
 	Server(String host, int port) {
 		try {
 			Router route=Router.getInstanse();
+			route.add("/voice/",Settings.POST ,MediaViews.class ,"getAudioFromJs");
+			
+			
 			route.add("/",Settings.GET ,BaseViews.class ,"index");
 			route.checkSettingsRoute();
 			
