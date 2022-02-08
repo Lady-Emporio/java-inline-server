@@ -8,7 +8,7 @@ import java.util.List;
 import views.BaseViews;
 
 public class Router {
-	public class RouterFunction {
+	static public class RouterFunction {
 		String method;
 		String pattern;
 		String nameFunction;
@@ -28,6 +28,7 @@ public class Router {
 	private List<RouterFunction> functions;
 	private final static Router hide = new Router();
 	RouterFunction page404;
+	public RouterFunction cgi=null;
 	Router() {
 		functions = new ArrayList<RouterFunction>();
 		page404=new RouterFunction("page not found404",Settings.GET, BaseViews.class, "page404");
@@ -47,6 +48,12 @@ public class Router {
 			}
 		}
 		
+		if(null!=cgi) {
+			System.out.println("Router: cgi: "+req.uri.getPath());
+			Method method = cgi.obj.getMethod(cgi.nameFunction, Request.class, Response.class);
+			method.invoke(null, req, resp);
+			return;
+		}
 		System.out.println("Router: 404.");
 		Method method = BaseViews.class.getMethod(page404.nameFunction, Request.class, Response.class);
 		method.invoke(null, req, resp);

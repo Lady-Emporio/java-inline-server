@@ -16,10 +16,10 @@ public class Server {
 	Server(String host, int port) {
 		try {
 			Router route=Router.getInstanse();
-			route.add("/voice/",Settings.POST ,MediaViews.class ,"getAudioFromJs");
-			
-			
+			route.add("/voice.php",Settings.POST ,MediaViews.class ,"getAudioFromJs");
 			route.add("/",Settings.GET ,BaseViews.class ,"index");
+			
+			route.cgi=new Router.RouterFunction("", Settings.GET,BaseViews.class, "cgi");
 			route.checkSettingsRoute();
 			
 			server = new ServerSocket();

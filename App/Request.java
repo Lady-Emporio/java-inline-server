@@ -22,7 +22,7 @@ import java.util.Locale;
 public class Request {
 	Socket socket;
 	String method;
-	URI uri;
+	public URI uri;
 	Headers headers;
 
 	public byte[] rawBody = new byte[0];

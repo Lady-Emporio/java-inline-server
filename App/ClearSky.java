@@ -143,12 +143,53 @@ public class ClearSky {
         return params;
     }
 	
-	public static ArrayList<Files> parseBoundary(byte [] rawBody,String boundary) throws IOException {
-		byte[] lboundary=boundary.getBytes();
-		byte [] bBoundary=new byte[lboundary.length+2];
-		bBoundary[0]='-';
-		bBoundary[1]='-';
-		System.arraycopy(lboundary,0,bBoundary,2,lboundary.length);
+	public static ArrayList<Files> parseBoundary(byte[] rawBody, String boundary) throws IOException {
+		ArrayList<Files> boundaries = new ArrayList<Files>();
+		byte[] bBoundary;
+
+		{
+			byte[] lboundary = boundary.getBytes();
+
+			bBoundary = new byte[lboundary.length + 2];
+			bBoundary[0] = '-';
+			bBoundary[1] = '-';
+			System.arraycopy(lboundary, 0, bBoundary, 2, lboundary.length);
+		}
+		if (indexOfArray(rawBody, bBoundary, 0) != 0) {
+			throw new IOException("Not found boundary in begin body.");
+		}
+		byte[] eofBoundary1= {'-','-','\r','\n'};
+		byte[] eofBoundary2= {'-','-','\n'};
+		
+		int posNextBlock=0;
+		int stop=-1;
+		byte[][]boundariesRaw=new byte[12][];
+		while(stop<11) {
+			++stop;
+			int endBlock=indexOfArray(rawBody, bBoundary, posNextBlock);
+			if(-1 == endBlock) {
+				throw new IOException("Promlem with found boundary.");
+			}
+			byte[] nowBoundary=new byte[endBlock-posNextBlock];
+			System.arraycopy(rawBody, posNextBlock, bBoundary, 0, endBlock-posNextBlock);
+			boundariesRaw[stop]=nowBoundary;
+			posNextBlock=endBlock;
+			
+		}
+		
+		
+		
+		
+
+		return boundaries;
+	}
+
+	public static ArrayList<Files> parseBoundary_1version(byte[] rawBody, String boundary) throws IOException {
+		byte[] lboundary = boundary.getBytes();
+		byte[] bBoundary = new byte[lboundary.length + 2];
+		bBoundary[0] = '-';
+		bBoundary[1] = '-';
+		System.arraycopy(lboundary, 0, bBoundary, 2, lboundary.length);
 		
 		
 		if (indexOfArray(rawBody,bBoundary,0)!=0) {
@@ -235,7 +276,7 @@ public class ClearSky {
 			}
 			
 			
-			int beforeNextPosBeginBoundary=nextPosBeginBoundary;
+			int beforeNextPosBeginBoundary=nextPosBeginBoundary-1;//not include
 //			while ('\r'==rawBody[afterEndContentDisposition] || '\n'==rawBody[afterEndContentDisposition]) {
 //				++afterEndContentDisposition;
 //			}
@@ -251,6 +292,7 @@ public class ClearSky {
 		
 		return boundaries;
 	}
+	
 	public static boolean arrayStartsWith(byte[]first, byte[]second, int beginFirst) {
 		if (first.length < beginFirst+second.length) {
 			return false;//In pos in first array can not put second
