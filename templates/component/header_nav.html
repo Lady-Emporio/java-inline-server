@@ -1,0 +1,23 @@
+<nav class="header_nav" th:fragment="headerNav">
+		<h3>Index main <span th:text="${now}"></span></h3>
+  <ul class="header_ul">
+    <li><a class="header_a" href="/admin/">admin</a></li>
+    <li><a class="header_a" href="/">main page</a></li>
+	
+	<li><span class="header_a">Notification ▼</span>
+		<ul class="submenu">
+			<li><a class="header_a" href="/s/l/">Список задач</a></li>		
+			<li><a class="header_a" href="/s/n/">Новый</a></li>		
+		</ul>
+	</li>
+	
+	<!--<li><span class="header_a">Api ▼</span>
+		<ul class="submenu">	
+		</ul>
+    </li>-->
+
+	<li><a href="/s/all/" class="header_a">Все задачи</a></li>
+    <li><a href="/s/actsOnlyActive/" class="header_a">Активные</a></li>
+	<li><a href="/s/acts/" class="header_a">Задачи актами</a></li>
+  </ul>
+</nav>

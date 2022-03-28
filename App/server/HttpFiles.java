@@ -1,16 +1,16 @@
-package app;
+package app.server;
 
 import java.io.IOException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 
-public class Files {
+public class HttpFiles {
 	private byte[] data;
 	private String rawContentDisposition;
 	private String contentDisposition="";
 	private String name="";
 	private String filename="";
-	public Files(String rawContentDisposition, byte[] data) throws IOException {
+	public HttpFiles(String rawContentDisposition, byte[] data) throws IOException {
 		this.data=data;
 		this.rawContentDisposition=rawContentDisposition;
 		parseRawContentDisposition();
@@ -19,7 +19,6 @@ public class Files {
 	}
 	@Override
 	public String toString() {
-		// TODO Auto-generated method stub
 		return super.toString()+"---"+contentDisposition+"---"+name+"---"+filename;
 	}
 

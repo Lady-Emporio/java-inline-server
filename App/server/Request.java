@@ -1,6 +1,6 @@
-package app;
+package app.server;
 
-import static app.Settings.*;
+import static app.server.Settings.*;
 
 import java.io.BufferedWriter;
 import java.io.EOFException;
@@ -18,17 +18,21 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
+
+import app.ClearSky;
+import app.route.enums.METHODS;
 
 public class Request {
 	Socket socket;
-	String method;
+	public METHODS method;
 	public URI uri;
-	Headers headers;
-
+	public Headers headers;
+	public Map<String, String> pathValues;
 	public byte[] rawBody = new byte[0];
 	String rawStrBody = "";
 	HashMap<String, String> params = new HashMap<String, String>();
-	private ArrayList<Files> files = new ArrayList<Files>();
+	private ArrayList<HttpFiles> files = new ArrayList<HttpFiles>();
 
 	public Request(InputStream in, Socket socket) throws IOException {
 		this.socket = socket;
@@ -115,7 +119,14 @@ public class Request {
 		if (tokens.length != 3)
 			throw new IOException("invalid request line: \"" + line + "\"");
 		try {
-			method = tokens[0];
+			String strMethod = tokens[0];
+			if (strMethod.equalsIgnoreCase("GET")) {
+				method=METHODS.GET;
+			}else if (strMethod.equalsIgnoreCase("POST")) {
+				method=METHODS.POST;
+			}else {
+				throw new IOException("Method: '"+strMethod+"' not support.");
+			}
 			// must remove '//' prefix which constructor parses as host name
 			uri = new URI(ClearSky.trimDuplicates(tokens[1], '/'));
 		} catch (URISyntaxException use) {
@@ -124,7 +135,7 @@ public class Request {
 
 	}
 
-	public ArrayList<Files> getFiles() {
+	public ArrayList<HttpFiles> getFiles() {
 		return files;
 	}
 

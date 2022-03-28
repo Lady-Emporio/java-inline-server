@@ -1,6 +1,6 @@
-package app;
+package app.server;
 
-import static app.Settings.*;
+import static app.server.Settings.*;
 
 import java.io.DataInputStream;
 import java.io.FileInputStream;
@@ -41,6 +41,9 @@ public class Response {
 		headers=new LinkedHashMap <String, String>();
 	}
 
+	public void error404() throws IOException {
+		sendAll("Page not found. 404. "+new Date(),404);
+	}
 	public void sendAll(String html) throws IOException {
 		sendAll(html,200);
 	}
@@ -60,11 +63,11 @@ public class Response {
 		out.close();
 	}
 	
-	public void sendFile(String filename) throws IOException {
-		sendFile(filename,200);
+	public void sendFileFromBASE_DIR(String filename) throws IOException {
+		sendFileFromBASE_DIR(filename,200);
 	}
 	
-	public void sendFile(String filename,int status_code) throws IOException {
+	public void sendFileFromBASE_DIR(String filename,int status_code) throws IOException {
 		String realFileName=Settings.BASE_DIR+filename;
 		DataInputStream data = new DataInputStream(new FileInputStream(realFileName));
 		String text = new String(data.readAllBytes());
@@ -79,6 +82,13 @@ public class Response {
 		headers.put("Server", FUNCTIONAL_SERVER);
 		headers.put("Content-Type", "text/html");
 		headers.put("Content-Length", "0");
+		
+		headers.put("Content-Type", "text/html; charset=utf-8");
+		headers.put("X-Frame-Options", "DENY");
+		headers.put("X-Content-Type-Options", "nosniff");
+		headers.put("Referrer-Policy", "same-origin");
+		headers.put("Access-Control-Allow-Origin", "*");
+				
 	}
 	
 	private String serverDateNow() {

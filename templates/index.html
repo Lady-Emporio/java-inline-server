@@ -1,0 +1,21 @@
+<html>
+
+<head>
+</head>
+<body>
+<h3>We are [[${today}]]</h3>
+<p>utf time: [[${utfTime}]]</p>
+
+
+<span th:text="${vasa}?: 'my string if null vasa'">27</span>
+<div th:insert="~{footer :: copy}"></div>
+<p>We are.</p>
+
+<ol>
+    <li th:each="pageData : ${myPages}">
+    	<a href="details.html" th:href="@{OpenByIdTest(TestVal=${pageData.id})}">view</a>
+    </li>
+     <a href="details.html" th:href="@{menuPage}">view</a>
+</ol>
+</body>
+</html>

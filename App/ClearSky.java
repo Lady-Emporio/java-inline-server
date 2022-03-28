@@ -11,6 +11,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 
+import app.server.HttpFiles;
+import app.server.Headers;
+
 public class ClearSky {
 	public static long parseULong(String s) throws NumberFormatException {
 		long val = Long.parseLong(s, 10); // throws NumberFormatException
@@ -95,7 +98,16 @@ public class ClearSky {
 		int len = 0; // buffer length
 		int count = 0; // number of read bytes
 		byte[] buf = null; // optimization - lazy allocation only if necessary
-		while ((b = in.read()) != -1 && b != delim) {
+		while (true) {
+			try {
+			b = in.read();
+			}catch (IOException e) {
+				throw e;
+			}
+			if (!(b != -1 && b != delim)) {
+				break;
+			}
+			
 			if (count == len) { // expand buffer
 				if (count == maxLength)
 					throw new IOException("token too large (" + count + ")");
@@ -143,38 +155,117 @@ public class ClearSky {
         return params;
     }
 	
-	public static ArrayList<Files> parseBoundary(byte[] rawBody, String boundary) throws IOException {
-		ArrayList<Files> boundaries = new ArrayList<Files>();
+	public static ArrayList<HttpFiles> parseBoundary(byte[] rawBody, String boundary) throws IOException  {
+		ArrayList<HttpFiles> boundaries = new ArrayList<HttpFiles>();
 		byte[] bBoundary;
 
 		{
 			byte[] lboundary = boundary.getBytes();
-
 			bBoundary = new byte[lboundary.length + 2];
 			bBoundary[0] = '-';
 			bBoundary[1] = '-';
 			System.arraycopy(lboundary, 0, bBoundary, 2, lboundary.length);
 		}
+		
 		if (indexOfArray(rawBody, bBoundary, 0) != 0) {
 			throw new IOException("Not found boundary in begin body.");
 		}
-		byte[] eofBoundary1= {'-','-','\r','\n'};
-		byte[] eofBoundary2= {'-','-','\n'};
 		
-		int posNextBlock=0;
-		int stop=-1;
-		byte[][]boundariesRaw=new byte[12][];
-		while(stop<11) {
+		byte[] eofBoundary = {'-','-','\n'};
+		byte[] passBoundary = {'\n','\n'};
+		
+		int posNextBlock = 0;
+		int stop = -1;
+		byte[][] boundariesRaw = new byte[12][];
+		while(true) {
 			++stop;
-			int endBlock=indexOfArray(rawBody, bBoundary, posNextBlock);
+			if (stop > 11) {
+				throw new IOException("Not support vary many files in boundary.");
+			}
+			
+			posNextBlock=indexOfArray(rawBody, bBoundary, posNextBlock);
+			posNextBlock+=bBoundary.length;
+			int contentDispositionBegin=posNextBlock;
+			
+			{
+				int endBoundary;
+				boolean foundEndBoundary;
+				while( true ) {
+					foundEndBoundary = true;
+					endBoundary = posNextBlock;
+					
+					if( rawBody[endBoundary] == '\r') {
+						++endBoundary;
+					}
+					if( rawBody[endBoundary] != '\n') {
+						foundEndBoundary=false;
+					}
+					++endBoundary;
+					
+					if( rawBody[endBoundary] == '\r') {
+						++endBoundary;
+					}
+					if( rawBody[endBoundary] != '\n') {
+						foundEndBoundary=false;
+					}
+					
+					if (foundEndBoundary) {
+						posNextBlock=endBoundary+1;
+						break;
+					}
+					++posNextBlock;
+				}
+			}
+			int contentDispositionEnd=posNextBlock-1;
+			
+			int endBlock = indexOfArray(rawBody, bBoundary, posNextBlock);
 			if(-1 == endBlock) {
 				throw new IOException("Promlem with found boundary.");
 			}
+			int beginNextBoundary=endBlock;
+			beginNextBoundary+= bBoundary.length;	
+			boolean isEnd = true;
+			if(rawBody[beginNextBoundary] == '-') {
+				int endCounter=beginNextBoundary;
+				endCounter++;
+				if (rawBody[endCounter]!='-') {
+					isEnd=false;
+				}
+				endCounter++;
+				if (rawBody[endCounter]=='\r') {
+					endCounter++;
+				}
+				if (rawBody[endCounter]!='\n') {
+					isEnd=false;
+				}
+				if(rawBody.length != endCounter+1) {
+					isEnd=false;
+				}
+			}
+			while ( rawBody[endBlock-1] == '\n' ) {
+				--endBlock;
+				if (rawBody[endBlock-1] == '\r') {
+					--endBlock;
+				}
+			}
+			
 			byte[] nowBoundary=new byte[endBlock-posNextBlock];
-			System.arraycopy(rawBody, posNextBlock, bBoundary, 0, endBlock-posNextBlock);
+			System.arraycopy(rawBody, posNextBlock, nowBoundary, 0, endBlock-posNextBlock);
 			boundariesRaw[stop]=nowBoundary;
 			posNextBlock=endBlock;
 			
+			byte[] rawContentDisposition=new byte[contentDispositionEnd-contentDispositionBegin];
+			System.arraycopy(rawBody, contentDispositionBegin, rawContentDisposition, 0, contentDispositionEnd-contentDispositionBegin);
+			String contentDispositionStr = new String(rawContentDisposition,StandardCharsets.ISO_8859_1);
+			contentDispositionStr= new String(contentDispositionStr.getBytes(),StandardCharsets.UTF_8) ;
+			
+			HttpFiles file = new HttpFiles(contentDispositionStr, nowBoundary);
+			boundaries.add(file);
+			
+			if(isEnd) {
+				break;
+			}
+			endBlock=beginNextBoundary;
 		}
 		
 		
@@ -184,7 +275,7 @@ public class ClearSky {
 		return boundaries;
 	}
 
-	public static ArrayList<Files> parseBoundary_1version(byte[] rawBody, String boundary) throws IOException {
+	public static ArrayList<HttpFiles> parseBoundary_1version(byte[] rawBody, String boundary) throws IOException {
 		byte[] lboundary = boundary.getBytes();
 		byte[] bBoundary = new byte[lboundary.length + 2];
 		bBoundary[0] = '-';
@@ -196,7 +287,7 @@ public class ClearSky {
 			throw new IOException("Not found boundary in begin body.");
 		}
 			
-		ArrayList<Files> boundaries=new ArrayList<Files>();
+		ArrayList<HttpFiles> boundaries=new ArrayList<HttpFiles>();
 		int contentDispositionPos=bBoundary.length;
 		boolean allFound = false;
 		int stop=40;
@@ -287,7 +378,7 @@ public class ClearSky {
 			int lenData=beforeNextPosBeginBoundary-afterEndContentDisposition;
 			byte []dataBoundary=new byte[lenData];
 			System.arraycopy(rawBody,afterEndContentDisposition,dataBoundary,0,lenData);
-			boundaries.add(new Files(contentDispositionStr,dataBoundary));
+			boundaries.add(new HttpFiles(contentDispositionStr,dataBoundary));
 		}
 		
 		return boundaries;
@@ -308,11 +399,24 @@ public class ClearSky {
 		}
 		return true;
 	}
+	
+	public static boolean arrayEndsWith(byte[]first, byte[]second) {
+		if (first.length < second.length) {
+			return false;
+		}
+		for(int i=0;i<second.length;++i) {
+			if (first[first.length-1-i] != second[second.length-1-i]) {
+				return false;
+			}
+		}
+		return true;
+	}
 	public static int indexOfArray(byte[]first, byte[]second, int beginFirst) {
 		int i=beginFirst;
 		boolean found;
 		for(; first.length>=i+second.length;++i) {
-			if( found=arrayStartsWith(first,second,i) ) {
+			found=arrayStartsWith(first,second,i);
+			if( found ) {
 				return i;
 			}
 		}

@@ -1,4 +1,4 @@
-package app;
+package app.server;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -7,39 +7,32 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketAddress;
 
-import views.BaseViews;
-import views.MediaViews;
+import app.ClearSky;
+import app.views.BaseViews;
+import app.views.MediaViews;
 
 public class Server {
 	ServerSocket server;
 
-	Server(String host, int port) {
+	public Server(String host, int port) {
 		try {
-			Router route=Router.getInstanse();
-			route.add("/voice.php",Settings.POST ,MediaViews.class ,"getAudioFromJs");
-			route.add("/",Settings.GET ,BaseViews.class ,"index");
-			
-			route.cgi=new Router.RouterFunction("", Settings.GET,BaseViews.class, "cgi");
-			route.checkSettingsRoute();
-			
 			server = new ServerSocket();
-			final InetAddress _host = InetAddress.getByName(host);
+			InetAddress _host = InetAddress.getByName(host);
 			SocketAddress socketAddress = new InetSocketAddress(_host, port);
 			ClearSky.log(socketAddress.toString());
 			server.bind(socketAddress);
-			
 		} catch (IOException e) {
 			ClearSky.error(e.getMessage());
 		}
 	}
 
-	void start() {
+	public void start() {
 		try {
 			while (server != null && !server.isClosed()) {
 				Socket socket = server.accept();
 				socket.setSoTimeout(10000);
 				socket.setTcpNoDelay(true);
-				ClearSky.log("connect");
+				ClearSky.log("new connection.");
 				Runnable runable = new SocketWorker(socket);
 				Thread t = new Thread(runable);
 				t.start();
